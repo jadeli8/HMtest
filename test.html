@@ -151,7 +151,7 @@ characteristics.</p>
     const server = await device.gatt.connect();
 
     log('Getting GAP Service...');
-    const service = await server.getPrimaryService(00001800-0000-1000-8000-00805f9b34fb);
+    const service = await server.getPrimaryService('00001800-0000-1000-8000-00805f9b34fb');
 
     log('Getting GAP Characteristics...');
     const characteristics = await service.getCharacteristics();
