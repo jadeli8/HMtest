@@ -2,7 +2,15 @@
  <head>
  </head>
  <body>
-   <script src="https://www.puck-js.com/puck.js"></script>
+<script>
+ navigator.bluetooth.requestDevice({
+  filters: [{
+    services: [0x0012, 0x12345678, '00001800-0000-1000-8000-00805f9b34fb']
+  }]
+})
+.then(device => { /* ... */ })
+.catch(error => { console.log(error); });
+ </script>
     <button onclick="Puck.write('LED1.set();\n');">On!</button>
   <button onclick="Puck.write('LED1.reset();\n');">Off!</button>
   </body>
