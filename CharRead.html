@@ -2,15 +2,7 @@
  <head>
  </head>
  <body>
-<script>
- navigator.bluetooth.requestDevice({
-  filters: [{
-    services: [0x0012, 0x12345678, '00001800-0000-1000-8000-00805f9b34fb']
-  }]
-})
-.then(device => { /* ... */ })
-.catch(error => { console.log(error); });
- </script>
+
  <script>
   if('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
