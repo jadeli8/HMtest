@@ -52,7 +52,7 @@
   <p>This sample illustrates the use of the Web Bluetooth API to read a character.</p>
   
   
-<button id="readBatteryLevel">Read Bluetooth Device's Battery Level</button>
+<button id="readChar">Read Bluetooth Characters</button>
 <button id="startNotifications" disabled>Start Notifications</button>
 <button id="stopNotifications" disabled>Stop Notifications</button>
 <button id="reset">Reset Bluetooth Device</button>
@@ -103,14 +103,14 @@
   }
 </script>
 <script>var bluetoothDevice;
-var batteryLevelCharacteristic;
+var readCharacteristic;
 
 function onReadBatteryLevelButtonClick() {
   return (bluetoothDevice ? Promise.resolve() : requestDevice())
   .then(connectDeviceAndCacheCharacteristics)
   .then(_ => {
     log('Reading Battery Level...');
-    return batteryLevelCharacteristic.readValue();
+    return readCharacteristic.readValue();
   })
   .catch(error => {
     log('Argh! ' + error);
@@ -130,7 +130,7 @@ function requestDevice() {
 }
 
 function connectDeviceAndCacheCharacteristics() {
-  if (bluetoothDevice.gatt.connected && batteryLevelCharacteristic) {
+  if (bluetoothDevice.gatt.connected && readCharacteristic) {
     return Promise.resolve();
   }
 
@@ -145,8 +145,8 @@ function connectDeviceAndCacheCharacteristics() {
     return service.getCharacteristic('battery_level');
   })
   .then(characteristic => {
-    batteryLevelCharacteristic = characteristic;
-    batteryLevelCharacteristic.addEventListener('characteristicvaluechanged',
+    readCharacteristic = characteristic;
+    readCharacteristic.addEventListener('characteristicvaluechanged',
         handleBatteryLevelChanged);
     document.querySelector('#startNotifications').disabled = false;
     document.querySelector('#stopNotifications').disabled = true;
@@ -163,7 +163,7 @@ function handleBatteryLevelChanged(event) {
 
 function onStartNotificationsButtonClick() {
   log('Starting Battery Level Notifications...');
-  batteryLevelCharacteristic.startNotifications()
+  readCharacteristic.startNotifications()
   .then(_ => {
     log('> Notifications started');
     document.querySelector('#startNotifications').disabled = true;
@@ -176,7 +176,7 @@ function onStartNotificationsButtonClick() {
 
 function onStopNotificationsButtonClick() {
   log('Stopping Battery Level Notifications...');
-  batteryLevelCharacteristic.stopNotifications()
+  readCharacteristic.stopNotifications()
   .then(_ => {
     log('> Notifications stopped');
     document.querySelector('#startNotifications').disabled = false;
@@ -188,10 +188,10 @@ function onStopNotificationsButtonClick() {
 }
 
 function onResetButtonClick() {
-  if (batteryLevelCharacteristic) {
-    batteryLevelCharacteristic.removeEventListener('characteristicvaluechanged',
+  if (ReadCharacteristic) {
+    ReadCharacteristic.removeEventListener('characteristicvaluechanged',
         handleBatteryLevelChanged);
-    batteryLevelCharacteristic = null;
+    readCharacteristic = null;
   }
   // Note that it doesn't disconnect device.
   bluetoothDevice = null;
@@ -207,7 +207,7 @@ function onDisconnected() {
 }
 </script>
   <script>
-  document.querySelector('#readBatteryLevel').addEventListener('click', function() {
+  document.querySelector('#readChar').addEventListener('click', function() {
     if (isWebBluetoothEnabled()) {
       onReadBatteryLevelButtonClick();
     }
