@@ -133,9 +133,11 @@ characteristics.</p>
   try {
     log('Requesting any Bluetooth Device...');
     const device = await navigator.bluetooth.requestDevice({
-     // filters: [...] <- Prefer filters to save energy & show relevant devices.
+     filters: [{
+    services: [0x0012, 0x12345678, '00001800-0000-1000-8000-00805f9b34fb']
+  }]
         acceptAllDevices: true,
-        optionalServices: ['generic_access']})
+        optionalServices: ['generic_access']});
    .then(device => {
     log('> Name:             ' + device.name);
     log('> Id:               ' + device.id);
