@@ -1,16 +1,38 @@
-<html>
- <head>
- </head>
- <body>
-  
-<h1>Web Bluetooth / GAP Characteristics Sample</h1>
-  
+
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Sample illustrating the use of Web Bluetooth / GAP Characteristics (Async Await).">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Web Bluetooth / GAP Characteristics Sample</title>
+    <script>
+      // Add a global error event listener early on in the page load, to help ensure that browsers
+      // which don't support specific functionality still end up displaying a meaningful message.
+      window.addEventListener('error', function(error) {
+        if (ChromeSamples && ChromeSamples.setStatus) {
+          console.error(error);
+          ChromeSamples.setStatus(error.message + ' (Your browser may not support this feature.)');
+          error.preventDefault();
+        }
+      });
+    </script>
+    
+  </head>
+
+  <body>
+     <h1>Web Bluetooth / GAP Characteristics Sample</h1>
+   
+
 <script>
   if('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   }
 </script>
-  
+
 <script>
   window.addEventListener('DOMContentLoaded', function() {
     const searchParams = new URL(location).searchParams;
@@ -51,12 +73,13 @@
     });
   });
 </script>
-  
-  <p>This sample illustrates the use of the Web Bluetooth API to read all GAP
-characteristics</p>
-  
-  <button>Get Bluetooth Device's GAP Characteristics</button>
-  
+
+
+<p>This sample illustrates the use of the Web Bluetooth API to read all GAP
+characteristics.</p>
+
+<button>Get Bluetooth Device's GAP Characteristics</button>
+
 <script>
   var ChromeSamples = {
     log: function() {
@@ -97,13 +120,14 @@ characteristics</p>
   if (/Chrome\/(\d+\.\d+.\d+.\d+)/.test(navigator.userAgent)){
     // Let's log a warning if the sample is not supposed to execute on this
     // version of Chrome.
-    if (50 > parseInt(RegExp.$1)) {
-      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + 50 + '.');
+    if (55 > parseInt(RegExp.$1)) {
+      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + 55 + '.');
     }
   }
 </script>
 
 
+  
     
       <script>async function onButtonClick() {
   try {
@@ -112,6 +136,14 @@ characteristics</p>
      // filters: [...] <- Prefer filters to save energy & show relevant devices.
         acceptAllDevices: true,
         optionalServices: ['generic_access']});
+   .then(device => {
+    log('> Name:             ' + device.name);
+    log('> Id:               ' + device.id);
+    log('> Connected:        ' + device.gatt.connected);
+  })
+  .catch(error => {
+    log('Argh! ' + error);
+  });
 
     log('Connecting to GATT Server...');
     const server = await device.gatt.connect();
@@ -208,6 +240,10 @@ function getDeviceType(value) {
 }
 </script>
     
+  
+
+ 
+
 <script>
   document.querySelector('button').addEventListener('click', function() {
     if (isWebBluetoothEnabled()) {
@@ -298,7 +334,5 @@ const valueToDeviceType = {
       ga('send', 'pageview');
       /* jshint ignore:end */
     </script>
-  
-
- </body>
+  </body>
 </html>
