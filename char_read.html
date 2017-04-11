@@ -2,10 +2,7 @@
  <head>
  </head>
  <body>
- <script> navigator.bluetooth.requestDevice({ filters: [{ services: ['battery_service'] }] })
-.then(device => { /* ... */ })
-.catch(error => { console.log(error); });
-  </script>
+   <script src="https://www.puck-js.com/puck.js"></script>
     <button onclick="Puck.write('LED1.set();\n');">On!</button>
   <button onclick="Puck.write('LED1.reset();\n');">Off!</button>
   </body>
