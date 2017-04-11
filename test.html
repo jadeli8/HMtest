@@ -49,17 +49,48 @@
     });
   });
 </script>
+
+<h3>Introduction</h3>
   
-  
+<p>This sample illustrates the use of the Web Bluetooth API to read all GAP
+characteristics from a bluetooth device.</p>  
+
+<h3>Buttons</h3>
+   
+<button>Get Bluetooth Device's GAP Characteristics</button>
+
+ <h3>Live Output</h3> 
+ <div id="output" class="output">
+  <div id="content"></div>
+  <div id="status"></div>
+  <pre id="log"></pre>
+</div>
+
+
+<script>
+  if (/Chrome\/(\d+\.\d+.\d+.\d+)/.test(navigator.userAgent)){
+    // Let's log a warning if the sample is not supposed to execute on this
+    // version of Chrome.
+    if (55 > parseInt(RegExp.$1)) {
+      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + 55 + '.');
+    }
+  }
+</script>
+
   
 <script> 
   async function onButtonClick() {
   try {
     log('Requesting any Bluetooth Device...');
     const device = await navigator.bluetooth.requestDevice({
-     // filters: [...] <- Prefer filters to save energy & show relevant devices.
+       filters: [{
+        services: [0x0012, '00001800-0000-1000-8000-00805f9b34fb']
+                 }],
         acceptAllDevices: true,
-        optionalServices: ['generic_access']});
+        optionalServices: ['generic_access']})
+    .then(device => { /* ... */ })
+    .catch(error => { console.log(error); });
+    ;
 
     log('Connecting to GATT Server...');
     const server = await device.gatt.connect();
