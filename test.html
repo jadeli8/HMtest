@@ -134,7 +134,7 @@ characteristics.</p>
     log('Requesting any Bluetooth Device...');
     const device = await navigator.bluetooth.requestDevice({
      filters: [{
-    services: [0x0012, '00001800-0000-1000-8000-00805f9b34fb']
+    services: ['00001800-0000-1000-8000-00805f9b34fb']
   }]
         acceptAllDevices: true,
         optionalServices: ['generic_access']});
@@ -151,7 +151,7 @@ characteristics.</p>
     const server = await device.gatt.connect();
 
     log('Getting GAP Service...');
-    const service = await server.getPrimaryService('00001800-0000-1000-8000-00805f9b34fb');
+    const service = await server.getPrimaryService();
 
     log('Getting GAP Characteristics...');
     const characteristics = await service.getCharacteristics();
