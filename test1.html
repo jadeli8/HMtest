@@ -1,0 +1,476 @@
+
+<!doctype html>
+<!--
+Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Sample illustrating the use of Web Bluetooth / GAP Characteristics (Async Await).">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Web Bluetooth / GAP Characteristics (Async Await) Sample</title>
+    <script>
+      // Add a global error event listener early on in the page load, to help ensure that browsers
+      // which don't support specific functionality still end up displaying a meaningful message.
+      window.addEventListener('error', function(error) {
+        if (ChromeSamples && ChromeSamples.setStatus) {
+          console.error(error);
+          ChromeSamples.setStatus(error.message + ' (Your browser may not support this feature.)');
+          error.preventDefault();
+        }
+      });
+    </script>
+    
+    
+    
+    <link rel="icon" href="icon.png">
+    
+    <link rel="stylesheet" href="../styles/main.css">
+    
+    
+  </head>
+
+  <body>
+    <img class="pageIcon" src="icon.png">
+    <h1>Web Bluetooth / GAP Characteristics (Async Await) Sample</h1>
+    <p class="availability">
+      Available in <a target="_blank" href="https://www.chromestatus.com/feature/5264933985976320">Chrome 55+</a> |
+      <a target="_blank" href="https://github.com/googlechrome/samples/blob/gh-pages/web-bluetooth/gap-characteristics-async-await.html">View on GitHub</a> |
+      <a  href="index.html">Browse Samples</a>
+    </p>
+    <p>The <a href="https://developers.google.com/web/updates/2015/07/interact-with-ble-devices-on-the-web">Web Bluetooth
+  API</a> lets websites discover and communicate with devices over the
+Bluetooth 4 wireless standard using the Generic Attribute Profile (GATT). It is
+currently partially implemented in Android M, Chrome OS, Linux, and Mac.</p>
+
+<script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    const searchParams = new URL(location).searchParams;
+    const inputs = Array.from(document.querySelectorAll('input[id]'));
+
+    inputs.forEach(input => {
+      if (searchParams.has(input.id)) {
+        if (input.type == 'checkbox') {
+          input.checked = searchParams.get(input.id);
+        } else {
+          input.value = searchParams.get(input.id);
+          input.blur();
+        }
+      }
+      if (input.type == 'checkbox') {
+        input.addEventListener('change', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.checked) {
+            newSearchParams.set(input.id, event.target.checked);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      } else {
+        input.addEventListener('input', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.value) {
+            newSearchParams.set(input.id, event.target.value);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      }
+    });
+  });
+</script>
+
+
+<p>This sample illustrates the use of the Web Bluetooth API to read all GAP
+characteristics from a nearby Bluetooth Device. You may want to try this demo
+with the BLE Peripheral Simulator App from the <a target="_blank"
+href="https://play.google.com/store/apps/details?id=io.github.webbluetoothcg.bletestperipheral">Google
+Play Store</a> and check out the <a href="gap-characteristics.html">GAP
+Characteristics (Promises)</a> sample.</p>
+
+<p>Note: The <a target="_blank" href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.reconnection_address.xml">Reconnection Address</a> characteristic is <a target="_blank" href="https://github.com/WebBluetoothCG/registries/blob/7b46fd5d58ea98fa098372a774fd7b981f0bdb0d/gatt_blacklist.txt#L30-L32">blacklisted</a> and forbidden from being accessed.</p>
+
+<button>Get Bluetooth Device's GAP Characteristics</button>
+
+<script>
+  var ChromeSamples = {
+    log: function() {
+      var line = Array.prototype.slice.call(arguments).map(function(argument) {
+        return typeof argument === 'string' ? argument : JSON.stringify(argument);
+      }).join(' ');
+
+      document.querySelector('#log').textContent += line + '\n';
+    },
+
+    clearLog: function() {
+      document.querySelector('#log').textContent = '';
+    },
+
+    setStatus: function(status) {
+      document.querySelector('#status').textContent = status;
+    },
+
+    setContent: function(newContent) {
+      var content = document.querySelector('#content');
+      while(content.hasChildNodes()) {
+        content.removeChild(content.lastChild);
+      }
+      content.appendChild(newContent);
+    }
+  };
+</script>
+
+<h3>Live Output</h3>
+<div id="output" class="output">
+  <div id="content"></div>
+  <div id="status"></div>
+  <pre id="log"></pre>
+</div>
+
+
+<script>
+  if (/Chrome\/(\d+\.\d+.\d+.\d+)/.test(navigator.userAgent)){
+    // Let's log a warning if the sample is not supposed to execute on this
+    // version of Chrome.
+    if (55 > parseInt(RegExp.$1)) {
+      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + 55 + '.');
+    }
+  }
+</script>
+
+
+
+
+  
+    
+      <script>async function onButtonClick() {
+  try {
+    log('Requesting any Bluetooth Device...');
+    const device = await navigator.bluetooth.requestDevice({
+     // filters: [...] <- Prefer filters to save energy & show relevant devices.
+        acceptAllDevices: true,
+        optionalServices: ['generic_access']});
+
+    log('Connecting to GATT Server...');
+    const server = await device.gatt.connect();
+
+    log('Getting GAP Service...');
+    const service = await server.getPrimaryService('generic_access');
+
+    log('Getting GAP Characteristics...');
+    const characteristics = await service.getCharacteristics();
+
+    for (const characteristic of characteristics) {
+      switch (characteristic.uuid) {
+
+        case BluetoothUUID.getCharacteristic('gap.appearance'):
+          await readAppearanceValue(characteristic);
+          break;
+
+        case BluetoothUUID.getCharacteristic('gap.device_name'):
+          await readDeviceNameValue(characteristic);
+          break;
+
+        case BluetoothUUID.getCharacteristic('gap.peripheral_preferred_connection_parameters'):
+          await readPPCPValue(characteristic);
+          break;
+
+        case BluetoothUUID.getCharacteristic('gap.central_address_resolution_support'):
+          await readCentralAddressResolutionSupportValue(characteristic);
+          break;
+
+        case BluetoothUUID.getCharacteristic('gap.peripheral_privacy_flag'):
+          await readPeripheralPrivacyFlagValue(characteristic);
+          break;
+
+        default: log('> Unknown Characteristic: ' + characteristic.uuid);
+      }
+    }
+  } catch(error) {
+    log('Argh! ' + error);
+  }
+}
+
+async function readAppearanceValue(characteristic) {
+  const value = await characteristic.readValue();
+  log('> Appearance: ' +
+      getDeviceType(value.getUint16(0, true /* Little Endian */)));
+}
+
+async function readDeviceNameValue(characteristic) {
+  const value = await characteristic.readValue();
+  log('> Device Name: ' + new TextDecoder().decode(value));
+}
+
+async function readPPCPValue(characteristic) {
+  const value = await characteristic.readValue();
+  log('> Peripheral Preferred Connection Parameters: ');
+  log('  > Minimum Connection Interval: ' +
+      (value.getUint8(0) | value.getUint8(1) << 8) * 1.25 + 'ms');
+  log('  > Maximum Connection Interval: ' +
+      (value.getUint8(2) | value.getUint8(3) << 8) * 1.25 + 'ms');
+  log('  > Slave Latency: ' +
+      (value.getUint8(4) | value.getUint8(5) << 8) + 'ms');
+  log('  > Connection Supervision Timeout Multiplier: ' +
+      (value.getUint8(6) | value.getUint8(7) << 8));
+}
+
+async function readCentralAddressResolutionSupportValue(characteristic) {
+  const value = await characteristic.readValue();
+  const supported = value.getUint8(0);
+  if (supported === 0) {
+    log('> Central Address Resolution: Not Supported');
+  } else if (supported === 1) {
+    log('> Central Address Resolution: Supported');
+  } else {
+    log('> Central Address Resolution: N/A');
+  }
+}
+
+async function readPeripheralPrivacyFlagValue(characteristic) {
+  const value = await characteristic.readValue();
+  const flag = value.getUint8(0);
+  if (flag === 1) {
+    log('> Peripheral Privacy Flag: Enabled');
+  } else {
+    log('> Peripheral Privacy Flag: Disabled');
+  }
+}
+
+/* Utils */
+
+function getDeviceType(value) {
+  // Check out page source to see what valueToDeviceType object is.
+  return value +
+      (value in valueToDeviceType ? ' (' + valueToDeviceType[value] + ')' : '');
+}
+</script>
+    
+  
+
+  
+    <h3>JavaScript Snippet</h3>
+  
+
+  
+    <figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">async</span> <span class="kd">function</span> <span class="nx">onButtonClick</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'Requesting any Bluetooth Device...'</span><span class="p">);</span>
+    <span class="kr">const</span> <span class="nx">device</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">navigator</span><span class="p">.</span><span class="nx">bluetooth</span><span class="p">.</span><span class="nx">requestDevice</span><span class="p">({</span>
+     <span class="c1">// filters: [...] &lt;- Prefer filters to save energy &amp; show relevant devices.</span>
+        <span class="na">acceptAllDevices</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="na">optionalServices</span><span class="p">:</span> <span class="p">[</span><span class="s1">'generic_access'</span><span class="p">]});</span>
+
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'Connecting to GATT Server...'</span><span class="p">);</span>
+    <span class="kr">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">device</span><span class="p">.</span><span class="nx">gatt</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'Getting GAP Service...'</span><span class="p">);</span>
+    <span class="kr">const</span> <span class="nx">service</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">getPrimaryService</span><span class="p">(</span><span class="s1">'generic_access'</span><span class="p">);</span>
+
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'Getting GAP Characteristics...'</span><span class="p">);</span>
+    <span class="kr">const</span> <span class="nx">characteristics</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">service</span><span class="p">.</span><span class="nx">getCharacteristics</span><span class="p">();</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kr">const</span> <span class="nx">characteristic</span> <span class="nx">of</span> <span class="nx">characteristics</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span><span class="nx">characteristic</span><span class="p">.</span><span class="nx">uuid</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="k">case</span> <span class="nx">BluetoothUUID</span><span class="p">.</span><span class="nx">getCharacteristic</span><span class="p">(</span><span class="s1">'gap.appearance'</span><span class="p">):</span>
+          <span class="nx">await</span> <span class="nx">readAppearanceValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">case</span> <span class="nx">BluetoothUUID</span><span class="p">.</span><span class="nx">getCharacteristic</span><span class="p">(</span><span class="s1">'gap.device_name'</span><span class="p">):</span>
+          <span class="nx">await</span> <span class="nx">readDeviceNameValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">case</span> <span class="nx">BluetoothUUID</span><span class="p">.</span><span class="nx">getCharacteristic</span><span class="p">(</span><span class="s1">'gap.peripheral_preferred_connection_parameters'</span><span class="p">):</span>
+          <span class="nx">await</span> <span class="nx">readPPCPValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">case</span> <span class="nx">BluetoothUUID</span><span class="p">.</span><span class="nx">getCharacteristic</span><span class="p">(</span><span class="s1">'gap.central_address_resolution_support'</span><span class="p">):</span>
+          <span class="nx">await</span> <span class="nx">readCentralAddressResolutionSupportValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">case</span> <span class="nx">BluetoothUUID</span><span class="p">.</span><span class="nx">getCharacteristic</span><span class="p">(</span><span class="s1">'gap.peripheral_privacy_flag'</span><span class="p">):</span>
+          <span class="nx">await</span> <span class="nx">readPeripheralPrivacyFlagValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+
+        <span class="nl">default</span><span class="p">:</span> <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Unknown Characteristic: '</span> <span class="o">+</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">uuid</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'Argh! '</span> <span class="o">+</span> <span class="nx">error</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">readAppearanceValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">readValue</span><span class="p">();</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Appearance: '</span> <span class="o">+</span>
+      <span class="nx">getDeviceType</span><span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getUint16</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">true</span> <span class="cm">/* Little Endian */</span><span class="p">)));</span>
+<span class="p">}</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">readDeviceNameValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">readValue</span><span class="p">();</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Device Name: '</span> <span class="o">+</span> <span class="k">new</span> <span class="nx">TextDecoder</span><span class="p">().</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">readPPCPValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">readValue</span><span class="p">();</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Peripheral Preferred Connection Parameters: '</span><span class="p">);</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'  &gt; Minimum Connection Interval: '</span> <span class="o">+</span>
+      <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.25</span> <span class="o">+</span> <span class="s1">'ms'</span><span class="p">);</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'  &gt; Maximum Connection Interval: '</span> <span class="o">+</span>
+      <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.25</span> <span class="o">+</span> <span class="s1">'ms'</span><span class="p">);</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'  &gt; Slave Latency: '</span> <span class="o">+</span>
+      <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'ms'</span><span class="p">);</span>
+  <span class="nx">log</span><span class="p">(</span><span class="s1">'  &gt; Connection Supervision Timeout Multiplier: '</span> <span class="o">+</span>
+      <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span> <span class="o">|</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">readCentralAddressResolutionSupportValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">readValue</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">supported</span> <span class="o">=</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">supported</span> <span class="o">===</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Central Address Resolution: Not Supported'</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">supported</span> <span class="o">===</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Central Address Resolution: Supported'</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Central Address Resolution: N/A'</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">readPeripheralPrivacyFlagValue</span><span class="p">(</span><span class="nx">characteristic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">characteristic</span><span class="p">.</span><span class="nx">readValue</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">flag</span> <span class="o">=</span> <span class="nx">value</span><span class="p">.</span><span class="nx">getUint8</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">flag</span> <span class="o">===</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Peripheral Privacy Flag: Enabled'</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">(</span><span class="s1">'&gt; Peripheral Privacy Flag: Disabled'</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cm">/* Utils */</span>
+
+<span class="kd">function</span> <span class="nx">getDeviceType</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Check out page source to see what valueToDeviceType object is.</span>
+  <span class="k">return</span> <span class="nx">value</span> <span class="o">+</span>
+      <span class="p">(</span><span class="nx">value</span> <span class="k">in</span> <span class="nx">valueToDeviceType</span> <span class="p">?</span> <span class="s1">' ('</span> <span class="o">+</span> <span class="nx">valueToDeviceType</span><span class="p">[</span><span class="nx">value</span><span class="p">]</span> <span class="o">+</span> <span class="s1">')'</span> <span class="p">:</span> <span class="s1">''</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+  
+
+
+
+<script>
+  document.querySelector('button').addEventListener('click', function() {
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onButtonClick();
+    }
+  });
+</script>
+
+<script>
+  log = ChromeSamples.log;
+
+  function isWebBluetoothEnabled() {
+    if (navigator.bluetooth) {
+      return true;
+    } else {
+      ChromeSamples.setStatus('Web Bluetooth API is not available.\n' +
+          'Please make sure the "Experimental Web Platform features" flag is enabled.');
+      return false;
+    }
+  }
+</script>
+
+<script>
+const valueToDeviceType = {
+     0: 'Unknown',
+    64: 'Generic Phone',
+   128: 'Generic Computer',
+   192: 'Generic Watch',
+   193: 'Watch: Sports Watch',
+   256: 'Generic Clock',
+   320: 'Generic Display',
+   384: 'Generic Remote Control',
+   448: 'Generic Eye-glasses',
+   512: 'Generic Tag',
+   576: 'Generic Keyring',
+   640: 'Generic Media Player',
+   704: 'Generic Barcode Scanner',
+   768: 'Generic Thermometer',
+   769: 'Thermometer: Ear',
+   832: 'Generic Heart rate Sensor',
+   833: 'Heart Rate Sensor: Heart Rate Belt',
+   896: 'Generic Blood Pressure',
+   897: 'Blood Pressure: Arm',
+   898: 'Blood Pressure: Wrist',
+   960: 'Human Interface Device (HID)',
+   961: 'Keyboard',
+   962: 'Mouse',
+   963: 'Joystick',
+   964: 'Gamepad',
+   965: 'Digitizer Tablet',
+   966: 'Card Reader',
+   967: 'Digital Pen',
+   968: 'Barcode Scanner',
+  1024: 'Generic Glucose Meter',
+  1088: 'Generic: Running Walking Sensor',
+  1089: 'Running Walking Sensor: In-Shoe',
+  1090: 'Running Walking Sensor: On-Shoe',
+  1091: 'Running Walking Sensor: On-Hip',
+  1152: 'Generic: Cycling',
+  1153: 'Cycling: Cycling Computer',
+  1154: 'Cycling: Speed Sensor',
+  1155: 'Cycling: Cadence Sensor',
+  1156: 'Cycling: Power Sensor',
+  1157: 'Cycling: Speed and Cadence Sensor',
+  3136: 'Generic: Pulse Oximeter',
+  3137: 'Fingertip',
+  3138: 'Wrist Worn',
+  3200: 'Generic: Weight Scale',
+  5184: 'Generic: Outdoor Sports Activity',
+  5185: 'Location Display Device',
+  5186: 'Location and Navigation Display Device',
+  5187: 'Location Pod',
+  5188: 'Location and Navigation Pod',
+  5696: 'Generic: Environmental Sensor',
+};
+</script>
+
+
+    
+    <script>
+      /* jshint ignore:start */
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-53563471-1', 'auto');
+      ga('send', 'pageview');
+      /* jshint ignore:end */
+    </script>
+  </body>
+</html>
