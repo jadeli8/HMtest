@@ -103,9 +103,9 @@ characteristics</p>
   }
 </script>
 
-  
-<script> 
-  async function onButtonClick() {
+
+    
+      <script>async function onButtonClick() {
   try {
     log('Requesting any Bluetooth Device...');
     const device = await navigator.bluetooth.requestDevice({
@@ -206,6 +206,9 @@ function getDeviceType(value) {
   return value +
       (value in valueToDeviceType ? ' (' + valueToDeviceType[value] + ')' : '');
 }
- </script>
+</script>
+    
+  
+
  </body>
 </html>
