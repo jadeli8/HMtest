@@ -148,15 +148,14 @@ var myCharacteristic;
 
 function onStartButtonClick() {
   let serviceUuid = 0x0012;
-  if (serviceUuid.startsWith('0x')) {
+ 
     serviceUuid = parseInt(serviceUuid);
-  }
+ 
 
   let characteristicUuid = '0000ffe1-0000-1000-8000-00805f9b34fb';
-  if (characteristicUuid.startsWith('0x')) {
-    characteristicUuid = parseInt(characteristicUuid);
-  }
-
+ 
+ //   characteristicUuid = parseInt(characteristicUuid);
+  
   log('Requesting Bluetooth Device...');
   navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
   .then(device => {
