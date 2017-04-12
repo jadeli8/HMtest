@@ -152,12 +152,13 @@ function onStartButtonClick() {
     serviceUuid = parseInt(serviceUuid);
  
 
-  let characteristicUuid = '0000ffe1-0000-1000-8000-00805f9b34fb';
+  let characteristicUuid = 0x0011;
  
- //   characteristicUuid = parseInt(characteristicUuid);
+    characteristicUuid = parseInt(characteristicUuid);
   
   log('Requesting Bluetooth Device...');
-  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+  //navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+  navigator.bluetooth.requestDevice({filters:[{"name":"HMSoft"}]})
   .then(device => {
     log('Connecting to GATT Server...');
     return device.gatt.connect();
