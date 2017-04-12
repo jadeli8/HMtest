@@ -143,15 +143,16 @@ characteristics.</p>
 
   
     
-      <script>var myCharacteristic;
+      <script>
+var myCharacteristic;
 
 function onStartButtonClick() {
-  let serviceUuid = 0x0012;
+  let serviceUuid = document.querySelector('#service').value;
   if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
   }
 
-  let characteristicUuid = 0x0011;
+  let characteristicUuid = document.querySelector('#characteristic').value;
   if (characteristicUuid.startsWith('0x')) {
     characteristicUuid = parseInt(characteristicUuid);
   }
@@ -164,7 +165,7 @@ function onStartButtonClick() {
   })
   .then(server => {
     log('Getting Service...');
-    return server.getPrimaryService();
+    return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
     log('Getting Characteristic...');
@@ -182,7 +183,6 @@ function onStartButtonClick() {
     log('Argh! ' + error);
   });
 }
-
 
 function onStopButtonClick() {
   if (myCharacteristic) {
