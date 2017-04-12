@@ -162,9 +162,10 @@ function onStartButtonClick() {
     log('Connecting to GATT Server...');
     return device.gatt.connect();
   })
+      log('> Connected:        ' + device.gatt.connected);
   .then(server => {
     log('Getting Service...');
-    return server.getPrimaryService();
+    return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
     log('Getting Characteristic...');
