@@ -146,19 +146,19 @@ characteristics.</p>
       <script>var myCharacteristic;
 
 function onStartButtonClick() {
-  let serviceUuid = document.querySelector('#service').value;
-  if (serviceUuid.startsWith('0x')) {
-    serviceUuid = parseInt(serviceUuid);
-  }
+  //let serviceUuid = document.querySelector('#service').value;
+  //if (serviceUuid.startsWith('0x')) {
+ //   serviceUuid = parseInt(serviceUuid);
+ // }
 
-  let characteristicUuid = document.querySelector('#characteristic').value;
-  if (characteristicUuid.startsWith('0x')) {
-    characteristicUuid = parseInt(characteristicUuid);
-  }
+  //let characteristicUuid = document.querySelector('#characteristic').value;
+ // if (characteristicUuid.startsWith('0x')) {
+   // characteristicUuid = parseInt(characteristicUuid);
+//  }
 
   log('Requesting Bluetooth Device...');
 //  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
-   navigator.bluetooth.requestDevice({filters: [{services: [0x0012,  '0000ffe0-0000-1000-8000-00805f9b34fb']}]})
+   navigator.bluetooth.requestDevice({filters: [{services: ['0000ffe0-0000-1000-8000-00805f9b34fb']}]})
   .then(device => {
     log('Connecting to GATT Server...');
     return device.gatt.connect();
