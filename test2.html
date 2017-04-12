@@ -129,62 +129,43 @@ characteristics.</p>
 
   
     
-      <script>async function onButtonClick() {
-  try {
-    log('Requesting any Bluetooth Device...');
-    const device = await navigator.bluetooth.requestDevice({
-     filters: [{
-    services: ['00001800-0000-1000-8000-00805f9b34fb']
-  }]
-        acceptAllDevices: true,
-        optionalServices: ['generic_access']});
-   .then(device => {
-    log('> Name:             ' + device.name);
-    log('> Id:               ' + device.id);
-    log('> Connected:        ' + device.gatt.connected);
+      <script>function onButtonClick() {
+  let serviceUuid = document.querySelector('#service').value;
+  if (serviceUuid.startsWith('0x')) {
+    serviceUuid = parseInt(serviceUuid);
+  }
+
+  let characteristicUuid = document.querySelector('#characteristic').value;
+  if (characteristicUuid.startsWith('0x')) {
+    characteristicUuid = parseInt(characteristicUuid);
+  }
+
+  log('Requesting Bluetooth Device...');
+  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+  .then(device => {
+    log('Connecting to GATT Server...');
+    return device.gatt.connect();
+  })
+  .then(server => {
+    log('Getting Service...');
+    return server.getPrimaryService(serviceUuid);
+  })
+  .then(service => {
+    log('Getting Characteristics...');
+    if (characteristicUuid) {
+      // Get all characteristics that match this UUID.
+      return service.getCharacteristics(characteristicUuid);
+    }
+    // Get all characteristics.
+    return service.getCharacteristics();
+  })
+  .then(characteristics => {
+    log('> Characteristics: ' +
+      characteristics.map(c => c.uuid).join('\n' + ' '.repeat(19)));
   })
   .catch(error => {
     log('Argh! ' + error);
   });
-
-    log('Connecting to GATT Server...');
-    const server = await device.gatt.connect();
-
-    log('Getting GAP Service...');
-    const service = await server.getPrimaryService();
-
-    log('Getting GAP Characteristics...');
-    const characteristics = await service.getCharacteristics();
-
-    for (const characteristic of characteristics) {
-      switch (characteristic.uuid) {
-
-        case BluetoothUUID.getCharacteristic('gap.appearance'):
-          await readAppearanceValue(characteristic);
-          break;
-
-        case BluetoothUUID.getCharacteristic('gap.device_name'):
-          await readDeviceNameValue(characteristic);
-          break;
-
-        case BluetoothUUID.getCharacteristic('gap.peripheral_preferred_connection_parameters'):
-          await readPPCPValue(characteristic);
-          break;
-
-        case BluetoothUUID.getCharacteristic('gap.central_address_resolution_support'):
-          await readCentralAddressResolutionSupportValue(characteristic);
-          break;
-
-        case BluetoothUUID.getCharacteristic('gap.peripheral_privacy_flag'):
-          await readPeripheralPrivacyFlagValue(characteristic);
-          break;
-
-        default: log('> Unknown Characteristic: ' + characteristic.uuid);
-      }
-    }
-  } catch(error) {
-    log('Argh! ' + error);
-  }
 }
 
 async function readAppearanceValue(characteristic) {
