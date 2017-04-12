@@ -160,11 +160,13 @@ function onStartButtonClick() {
   //navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
   navigator.bluetooth.requestDevice({"filters":[{"name":"HMSoft"}]})
   .then(device => {
+    log('connected:   '+device.gatt.connected);
     log('Connecting to GATT Server...');
-    return device.gatt.connect();
+     device.gatt.connect();
+     log('connected:   '+device.gatt.connected);
   })
   .then(server => {
-    log('connected:   '+device.gatt.connected);
+   
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
