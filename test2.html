@@ -145,10 +145,10 @@ characteristics.</p>
 var myCharacteristic;
 
 function onStartButtonClick() {
-  let serviceUuid = 0x0012;
- 
+    let serviceUuid = document.querySelector('#service').value;
+  if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
- 
+  }
 
   let characteristicUuid = 0x0011;
  
@@ -163,7 +163,7 @@ function onStartButtonClick() {
     })
   .then(server => {
    log('Getting Service...');
-    return server.getPrimaryService("generic_attribute");
+    return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
     log('Getting Characteristic...');
