@@ -147,12 +147,12 @@ characteristics.</p>
 var myCharacteristic;
 
 function onStartButtonClick() {
-  let serviceUuid = '0x0012';
+  let serviceUuid = 0x0012;
   if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
   }
 
-  let characteristicUuid = 0x0011;
+  let characteristicUuid = '0000ffe1-0000-1000-8000-00805f9b34fb';
   if (characteristicUuid.startsWith('0x')) {
     characteristicUuid = parseInt(characteristicUuid);
   }
