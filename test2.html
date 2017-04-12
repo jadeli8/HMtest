@@ -164,6 +164,7 @@ function onStartButtonClick() {
     return device.gatt.connect();
   })
   .then(server => {
+    log('connected:   '+device.gatt.connected);
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
