@@ -157,18 +157,19 @@ function onStartButtonClick() {
   }
 
   log('Requesting Bluetooth Device...');
-  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+//  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+   navigator.bluetooth.requestDevice({filters: [{services: [0x0010, 0xffff, '0000ffe1-0000-1000-8000-00805f9b34fb']}]})
   .then(device => {
     log('Connecting to GATT Server...');
     return device.gatt.connect();
   })
   .then(server => {
     log('Getting Service...');
-    return server.getPrimaryService(serviceUuid);
+    return server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
   })
   .then(service => {
     log('Getting Characteristic...');
-    return service.getCharacteristic(characteristicUuid);
+    return service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
   })
   .then(characteristic => {
     myCharacteristic = characteristic;
