@@ -129,7 +129,10 @@ characteristics.</p>
 
   
     
-      <script>function onButtonClick() {
+      <script>
+ var myCharacteristic;
+
+function onStartButtonClick() {
   let serviceUuid = document.querySelector('#service').value;
   if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
@@ -151,68 +154,48 @@ characteristics.</p>
     return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
-    log('Getting Characteristics...');
-    if (characteristicUuid) {
-      // Get all characteristics that match this UUID.
-      return service.getCharacteristics(characteristicUuid);
-    }
-    // Get all characteristics.
-    return service.getCharacteristics();
+    log('Getting Characteristic...');
+    return service.getCharacteristic(characteristicUuid);
   })
-  .then(characteristics => {
-    log('> Characteristics: ' +
-      characteristics.map(c => c.uuid).join('\n' + ' '.repeat(19)));
+  .then(characteristic => {
+    myCharacteristic = characteristic;
+    return myCharacteristic.startNotifications().then(_ => {
+      log('> Notifications started');
+      myCharacteristic.addEventListener('characteristicvaluechanged',
+          handleNotifications);
+    });
   })
   .catch(error => {
     log('Argh! ' + error);
   });
 }
 
-async function readAppearanceValue(characteristic) {
-  const value = await characteristic.readValue();
-  log('> Appearance: ' +
-      getDeviceType(value.getUint16(0, true /* Little Endian */)));
-}
-
-async function readDeviceNameValue(characteristic) {
-  const value = await characteristic.readValue();
-  log('> Device Name: ' + new TextDecoder().decode(value));
-}
-
-async function readPPCPValue(characteristic) {
-  const value = await characteristic.readValue();
-  log('> Peripheral Preferred Connection Parameters: ');
-  log('  > Minimum Connection Interval: ' +
-      (value.getUint8(0) | value.getUint8(1) << 8) * 1.25 + 'ms');
-  log('  > Maximum Connection Interval: ' +
-      (value.getUint8(2) | value.getUint8(3) << 8) * 1.25 + 'ms');
-  log('  > Slave Latency: ' +
-      (value.getUint8(4) | value.getUint8(5) << 8) + 'ms');
-  log('  > Connection Supervision Timeout Multiplier: ' +
-      (value.getUint8(6) | value.getUint8(7) << 8));
-}
-
-async function readCentralAddressResolutionSupportValue(characteristic) {
-  const value = await characteristic.readValue();
-  const supported = value.getUint8(0);
-  if (supported === 0) {
-    log('> Central Address Resolution: Not Supported');
-  } else if (supported === 1) {
-    log('> Central Address Resolution: Supported');
-  } else {
-    log('> Central Address Resolution: N/A');
+function onStopButtonClick() {
+  if (myCharacteristic) {
+    myCharacteristic.stopNotifications()
+    .then(_ => {
+      log('> Notifications stopped');
+      myCharacteristic.removeEventListener('characteristicvaluechanged',
+          handleNotifications);
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
   }
 }
 
-async function readPeripheralPrivacyFlagValue(characteristic) {
-  const value = await characteristic.readValue();
-  const flag = value.getUint8(0);
-  if (flag === 1) {
-    log('> Peripheral Privacy Flag: Enabled');
-  } else {
-    log('> Peripheral Privacy Flag: Disabled');
+function handleNotifications(event) {
+  let value = event.target.value;
+  let a = [];
+  // Convert raw data bytes to hex values just for the sake of showing something.
+  // In the "real" world, you'd use data.getUint8, data.getUint16 or even
+  // TextDecoder to process raw data bytes.
+  for (let i = 0; i < value.byteLength; i++) {
+    a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
   }
+  log('> ' + a.join(' '));
 }
+        
 
 /* Utils */
 
