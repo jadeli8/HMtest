@@ -158,7 +158,7 @@ function onStartButtonClick() {
 
   log('Requesting Bluetooth Device...');
 //  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
-   navigator.bluetooth.requestDevice({filters: [{services: [0x0012]}]})
+   navigator.bluetooth.requestDevice({filters: [{services: ['0000ffe0-0000-1000-8000-00805f9b34fb']}]})
   .then(device => {
     log('Connecting to GATT Server...');
     log('> Connected:        ' + device.gatt.connected); 
