@@ -342,7 +342,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     log('> Name:             ' + device.name);
     log('> Id:               ' + device.id);
     log('Connecting to GATT Server...');
-    return device.gatt.connect();
+    const server = await device.gatt.connect();
     })
    .then(server => {
    log('Getting Service...');
