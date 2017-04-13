@@ -360,8 +360,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
       log('> Notifications started');
       myCharacteristic.addEventListener('characteristicvaluechanged',
           handleNotifications);
-    });
-   
+    })   
   .catch(error => {
     log('Argh! ' + error);
   });
