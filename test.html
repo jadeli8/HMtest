@@ -354,7 +354,6 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     return server.getPrimaryService(serviceUuid);
   })
   .then(characteristic => {
-    
     log('Getting Characteristic...');
     myCharacteristic = service.getCharacteristic(characteristicUuid);
     return myCharacteristic.startNotifications().then(_ => {
@@ -362,7 +361,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
       myCharacteristic.addEventListener('characteristicvaluechanged',
           handleNotifications);
     });
-   })
+   
   .catch(error => {
     log('Argh! ' + error);
   });
