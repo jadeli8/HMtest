@@ -297,7 +297,10 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     }
   }
 </script>
- <script>function onButtonClick() {
+ <script>
+   var myCharacteristic;
+   
+  async function onButtonClick() {
   let serviceUuid = document.querySelector('#service').value;
   if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
@@ -341,19 +344,19 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   .then(device => {
     log('> Name:             ' + device.name);
     log('> Id:               ' + device.id);
-    log('Connecting to GATT Server...');
-    const server = await device.gatt.connect();
-    })
+   })
    .then(server => {
-   log('Getting Service...');
-    return server.getPrimaryService(serviceUuid);
+    log('Connecting to GATT Server...');
+    return device.gatt.connect();
   })
   .then(service => {
-    log('Getting Characteristic...');
-    return service.getCharacteristic(characteristicUuid);
+    log('Getting Service...');
+    return server.getPrimaryService(serviceUuid);
   })
   .then(characteristic => {
-    myCharacteristic = characteristic;
+    
+    log('Getting Characteristic...');
+    myCharacteristic = service.getCharacteristic(characteristicUuid);
     return myCharacteristic.startNotifications().then(_ => {
       log('> Notifications started');
       myCharacteristic.addEventListener('characteristicvaluechanged',
