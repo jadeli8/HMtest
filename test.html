@@ -356,11 +356,13 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   .then(characteristic => {
     log('Getting Characteristic...');
     myCharacteristic = service.getCharacteristic(characteristicUuid);
-    return myCharacteristic.startNotifications().then(_ => {
+    return myCharacteristic.startNotifications()
+    })
+    .then(_ => {
       log('> Notifications started');
       myCharacteristic.addEventListener('characteristicvaluechanged',
-          handleNotifications);
-    })   
+      handleNotifications);
+   })
   .catch(error => {
     log('Argh! ' + error);
   });
