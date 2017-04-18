@@ -342,12 +342,15 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     log('Connecting to GATT Server...');
     return device.gatt.connect();
   })
-  .then(service => {
+  .then(server => {
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
-  .then(characteristic => {
+  .then(service => {
     log('Getting Characteristic...');
+    return service.getCharacteristic(characteristicUuid);
+  })
+  .then(characteristic => {
     myCharacteristic = service.getCharacteristic(characteristicUuid);
     return myCharacteristic.startNotifications()
   })
