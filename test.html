@@ -337,10 +337,8 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   log('with ' + JSON.stringify(options));
   navigator.bluetooth.requestDevice(options)
   .then(device => {
-    log('> Name:             ' + device.name);
-    log('> Id:               ' + device.id);
-   })
-   .then(server => {
+    log('Name:             ' + device.name);
+    log('Id:               ' + device.id);
     log('Connecting to GATT Server...');
     return device.gatt.connect();
   })
@@ -352,12 +350,12 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     log('Getting Characteristic...');
     myCharacteristic = service.getCharacteristic(characteristicUuid);
     return myCharacteristic.startNotifications()
-    })
-    .then(_ => {
+  })
+  .then(_ => {
       log('> Notifications started');
       myCharacteristic.addEventListener('characteristicvaluechanged',
       handleNotifications);
-   })
+  })
   .catch(error => {
     log('Argh! ' + error);
   });
