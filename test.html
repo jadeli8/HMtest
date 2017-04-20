@@ -306,7 +306,8 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
    serviceUuid = parseInt(serviceUuid);
   }
   log('serviceUuid:             ' + serviceUuid);
-   let characteristicUuid = document.querySelector('#characteristic').value;
+  
+  let characteristicUuid = document.querySelector('#characteristic').value;
   if (characteristicUuid.startsWith('0x')) {
     characteristicUuid = parseInt(characteristicUuid);
   }
@@ -333,6 +334,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
     options.filters = filters;
   }
 
+  log('serviceUuid:             ' + serviceUuid);
   log('Requesting Bluetooth Device...');
   log('with ' + JSON.stringify(options));
   navigator.bluetooth.requestDevice(options)
