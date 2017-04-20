@@ -329,9 +329,9 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   let options = {};
   if (document.querySelector('#allDevices').checked) {
     options.acceptAllDevices = true;
-  } else {
+  }// else {
     options.filters = filters;
-  }
+  //}
 
   log('Requesting Bluetooth Device...');
   log('with ' + JSON.stringify(options));
