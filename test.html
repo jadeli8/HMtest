@@ -329,9 +329,9 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   let options = {};
   if (document.querySelector('#allDevices').checked) {
     options.acceptAllDevices = true;
-  }// else {
+  } else {
     options.filters = filters;
-  //}
+  }
 
   log('Requesting Bluetooth Device...');
   log('with ' + JSON.stringify(options));
@@ -344,7 +344,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   })
   .then(server => {
     log('Getting Service...');
-    return server.getPrimaryService(filterService);
+    return server.getPrimaryServices(filterService);
   })
   .then(service => {
     log('Getting Characteristic...');
