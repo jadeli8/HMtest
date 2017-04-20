@@ -301,11 +301,11 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
    var myCharacteristic;
    
   async function onButtonClick() {
-  //let serviceUuid = document.querySelector('#service').value;
-  //if (serviceUuid.startsWith('0x')) {
-   // serviceUuid = parseInt(serviceUuid);
-  //}
-  
+  let serviceUuid = document.querySelector('#service').value;
+  if (serviceUuid.startsWith('0x')) {
+   serviceUuid = parseInt(serviceUuid);
+  }
+  log('serviceUuid:             ' + serviceUuid);
    let characteristicUuid = document.querySelector('#characteristic').value;
   if (characteristicUuid.startsWith('0x')) {
     characteristicUuid = parseInt(characteristicUuid);
@@ -344,7 +344,7 @@ and write information from a nearby Bluetooth Low Energy Device.</p>
   })
   .then(server => {
     log('Getting Service...');
-    return server.getPrimaryServices(filterService);
+    return server.getPrimaryServices(serviceUuid);
   })
   .then(service => {
     log('Getting Characteristic...');
